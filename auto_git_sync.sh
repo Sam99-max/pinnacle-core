@@ -1,6 +1,3 @@
 #!/bin/bash
-cd "$(dirname "$0")"
-git pull --rebase
-git add .
-git commit -am "🛠️ Auto-update: $(date)" || true
-git push
+cd "/Users/samoey/pinnacle_projects/pinnacle-core"
+git add . && git commit -m "🛠 Auto-sync: $(date)" && git push
