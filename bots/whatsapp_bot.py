@@ -1,0 +1,1 @@
+print("🤖 WhatsApp Bot Ready.")
