@@ -1,2 +1,2 @@
 #!/bin/bash
-echo "[Agent:memory] Running..."
+echo 'Memory Agent running...'

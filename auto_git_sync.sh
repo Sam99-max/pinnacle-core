@@ -1,3 +1,5 @@
 #!/bin/bash
-cd "/Users/samoey/pinnacle_projects/pinnacle-core"
-git add . && git commit -m "🛠 Auto-sync: $(date)" && git push
+cd "$(dirname "$0")"
+git add -A
+git commit -m "Auto-sync: $(date +"%Y-%m-%d %H:%M:%S")" || true
+git push origin main || true

@@ -1,2 +1,2 @@
 #!/bin/bash
-echo "[Agent:planner] Running..."
+echo 'Planner Agent running...'
