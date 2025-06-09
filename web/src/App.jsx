@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Box, Typography, AppBar, Toolbar, Paper, Grid, Card, CardContent, Tabs, Tab, Button, List, ListItem, ListItemText, Divider, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Snackbar } from '@mui/material';
+import { Box, Typography, AppBar, Toolbar, Paper, Grid, Card, CardContent, Tabs, Tab, Button, List, ListItem, ListItemText, Divider, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Snackbar, Alert } from '@mui/material';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import StorageIcon from '@mui/icons-material/Storage';
@@ -67,18 +67,26 @@ function AuthProvider({ children }) {
   );
 }
 
-function LoginForm({ onLogin, error }) {
+function LoginForm({ onLogin, error, showSnackbar }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    await onLogin(username, password);
+    setLoading(false);
+    if (!error) showSnackbar('Login successful!', 'success');
+  };
   return (
-    <form onSubmit={e => { e.preventDefault(); onLogin(username, password); }}>
+    <form onSubmit={handleSubmit}>
       <DialogContent>
         <TextField label="Username" fullWidth margin="dense" value={username} onChange={e => setUsername(e.target.value)} />
         <TextField label="Password" type="password" fullWidth margin="dense" value={password} onChange={e => setPassword(e.target.value)} />
         {error && <Typography color="error">{error}</Typography>}
       </DialogContent>
       <DialogActions>
-        <Button type="submit" variant="contained">Login</Button>
+        <Button type="submit" variant="contained" disabled={loading}>{loading ? 'Logging in...' : 'Login'}</Button>
       </DialogActions>
     </form>
   );
@@ -262,17 +270,20 @@ function QuickActions({ onRunAll }) {
 }
 
 // --- Agent API Integration Example ---
-function AgentPanel() {
+function AgentPanel({ showSnackbar }) {
   const { token, user, setLoginOpen, logout } = useAuth();
   const [agents, setAgents] = useState([]);
   const [newAgent, setNewAgent] = useState('');
   const [createError, setCreateError] = useState('');
+  const [loading, setLoading] = useState(false);
   useEffect(() => {
+    setLoading(true);
     fetch('http://localhost:8000/agents', {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
       .then(r => r.ok ? r.json() : [])
-      .then(setAgents);
+      .then(setAgents)
+      .finally(() => setLoading(false));
   }, [token]);
 
   // Create agent (POST)
@@ -280,6 +291,7 @@ function AgentPanel() {
     e.preventDefault();
     setCreateError('');
     if (!newAgent) return;
+    setLoading(true);
     try {
       const res = await fetch('http://localhost:8000/agents', {
         method: 'POST',
@@ -291,6 +303,7 @@ function AgentPanel() {
       });
       if (!res.ok) throw new Error('Failed to create agent');
       setNewAgent('');
+      showSnackbar('Agent created!', 'success');
       // Refresh agent list
       fetch('http://localhost:8000/agents', {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -299,6 +312,9 @@ function AgentPanel() {
         .then(setAgents);
     } catch {
       setCreateError('Could not create agent');
+      showSnackbar('Could not create agent', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -311,14 +327,16 @@ function AgentPanel() {
             <Typography variant="body2" sx={{ mb: 1 }}>Logged in as: {user.username} <Button size="small" onClick={logout}>Logout</Button></Typography>
             <form onSubmit={handleCreateAgent} style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
               <TextField size="small" label="New Agent Name" value={newAgent} onChange={e => setNewAgent(e.target.value)} />
-              <Button type="submit" variant="contained">Create Agent</Button>
+              <Button type="submit" variant="contained" disabled={loading}>Create Agent</Button>
             </form>
             {createError && <Typography color="error">{createError}</Typography>}
-            <List>
-              {agents.map(agent => (
-                <ListItem key={agent.agent_id}><ListItemText primary={agent.agent_name} /></ListItem>
-              ))}
-            </List>
+            {loading ? <Typography>Loading...</Typography> : (
+              <List>
+                {agents.map(agent => (
+                  <ListItem key={agent.agent_id}><ListItemText primary={agent.agent_name} /></ListItem>
+                ))}
+              </List>
+            )}
           </>
         ) : (
           <Button variant="contained" onClick={() => setLoginOpen(true)}>Login to manage agents</Button>
@@ -329,14 +347,14 @@ function AgentPanel() {
 }
 
 // --- Dashboard Layout ---
-function Dashboard() {
+function Dashboard({ showSnackbar }) {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Grid container spacing={2}>
         <Grid item xs={12} md={6}>
           <RealTimePreview />
           <AnalyticsPanel />
-          <QuickActions onRunAll={() => alert('Run all agents (stub)')} />
+          <QuickActions onRunAll={() => showSnackbar('Run all agents (stub)', 'info')} />
         </Grid>
         <Grid item xs={12} md={6}>
           <NotificationCenter />
@@ -344,19 +362,33 @@ function Dashboard() {
           <SettingsPanel />
         </Grid>
       </Grid>
-      <AgentPanel />
+      <AgentPanel showSnackbar={showSnackbar} />
     </Box>
   );
 }
 
 // --- Main App ---
 function App() {
+  // Global notification state
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
+  // Provide a function to show notifications from anywhere
+  const showSnackbar = (message, severity = 'info') => setSnackbar({ open: true, message, severity });
+
+  // Wrap AuthProvider to pass showSnackbar to children via context
   return (
     <AuthProvider>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar(s => ({ ...s, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setSnackbar(s => ({ ...s, open: false }))} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
       <Box sx={{ p: 2 }}>
-        {/* Dashboard with all recommended modules and panels */}
-        <Dashboard />
-        {/* PinnaclePlatform shell for all advanced modules/tabs */}
+        <Dashboard showSnackbar={showSnackbar} />
         <PinnaclePlatform />
       </Box>
     </AuthProvider>
