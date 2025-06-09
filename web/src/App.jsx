@@ -9,6 +9,11 @@ import LuxuryLogo from './assets/react.svg';
 import './App.css';
 import PinnaclePlatform from './PinnaclePlatform';
 import React, { createContext, useContext } from 'react';
+import AnalyticsPanel from './components/AnalyticsPanel';
+import NotificationCenter from './components/NotificationCenter';
+import UserManagement from './components/UserManagement';
+import SettingsPanel from './components/SettingsPanel';
+import QuickActions from './components/QuickActions';
 
 // --- Auth Context ---
 const AuthContext = createContext();
@@ -169,105 +174,7 @@ function DaemonList({ daemons, onRun, onViewLog }) {
 }
 
 // --- Pinnacle Advanced Admin Dashboard Enhancements ---
-// 1. Add Analytics/Stats Panel
-function AnalyticsPanel() {
-  // Example stats, replace with real data
-  const stats = [
-    { label: 'Active Agents', value: 3 },
-    { label: 'Active Daemons', value: 2 },
-    { label: 'Total Tasks', value: 128 },
-    { label: 'System Uptime', value: '99.99%' },
-  ];
-  return (
-    <Card sx={{ mb: 3, background: 'rgba(255,255,255,0.9)' }}>
-      <CardContent>
-        <Typography variant="h6" color="primary" sx={{ mb: 2 }}>System Analytics</Typography>
-        <Grid container spacing={2}>
-          {stats.map((stat) => (
-            <Grid item xs={6} sm={3} key={stat.label}>
-              <Paper elevation={2} sx={{ p: 2, textAlign: 'center', borderRadius: 2, background: 'rgba(44,83,100,0.1)' }}>
-                <Typography variant="h5" sx={{ fontWeight: 700 }}>{stat.value}</Typography>
-                <Typography variant="body2">{stat.label}</Typography>
-              </Paper>
-            </Grid>
-          ))}
-        </Grid>
-      </CardContent>
-    </Card>
-  );
-}
-
-// 2. Add User Management (stub)
-function UserManagement() {
-  // Example users, replace with real data
-  const users = [
-    { name: 'Admin', role: 'Superuser' },
-    { name: 'Operator', role: 'Manager' },
-  ];
-  return (
-    <Card sx={{ mb: 3, background: 'rgba(255,255,255,0.9)' }}>
-      <CardContent>
-        <Typography variant="h6" color="primary" sx={{ mb: 2 }}>User Management</Typography>
-        <List>
-          {users.map((user) => (
-            <ListItem key={user.name}>
-              <ListItemText primary={user.name} secondary={user.role} />
-              <Button size="small" variant="outlined">Edit</Button>
-            </ListItem>
-          ))}
-        </List>
-      </CardContent>
-    </Card>
-  );
-}
-
-// 3. Add Settings Panel (stub)
-function SettingsPanel() {
-  return (
-    <Card sx={{ mb: 3, background: 'rgba(255,255,255,0.9)' }}>
-      <CardContent>
-        <Typography variant="h6" color="primary" sx={{ mb: 2 }}>System Settings</Typography>
-        <Typography variant="body2">Advanced configuration coming soon.</Typography>
-      </CardContent>
-    </Card>
-  );
-}
-
-// 4. Add Notification Center (stub)
-function NotificationCenter() {
-  // Example notifications, replace with real data
-  const notifications = [
-    { message: 'Agent Executor completed a task.', time: '2 min ago' },
-    { message: 'System update available.', time: '10 min ago' },
-  ];
-  return (
-    <Card sx={{ mb: 3, background: 'rgba(255,255,255,0.9)' }}>
-      <CardContent>
-        <Typography variant="h6" color="primary" sx={{ mb: 2 }}>Notifications</Typography>
-        <List>
-          {notifications.map((n, i) => (
-            <ListItem key={i}>
-              <ListItemText primary={n.message} secondary={n.time} />
-            </ListItem>
-          ))}
-        </List>
-      </CardContent>
-    </Card>
-  );
-}
-
-// 5. Add Quick Actions (stub)
-function QuickActions({ onRunAll }) {
-  return (
-    <Card sx={{ mb: 3, background: 'rgba(255,255,255,0.9)' }}>
-      <CardContent>
-        <Typography variant="h6" color="primary" sx={{ mb: 2 }}>Quick Actions</Typography>
-        <Button variant="contained" color="primary" onClick={onRunAll} sx={{ mr: 2 }}>Run All Agents</Button>
-        <Button variant="outlined" color="secondary">Restart Daemons</Button>
-      </CardContent>
-    </Card>
-  );
-}
+// Removed inline component definitions to avoid duplicate identifier errors
 
 // --- Agent API Integration Example ---
 function AgentPanel({ showSnackbar }) {
