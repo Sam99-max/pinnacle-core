@@ -257,17 +257,31 @@ function PinnacleAIAutonomousBuilder({ showSnackbar }) {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState('');
+  const [logs, setLogs] = useState('');
 
   const handleGenerate = async (e) => {
     e.preventDefault();
     setLoading(true);
     setResult('');
-    // Placeholder: In production, call backend endpoint like /api/autobuild
-    setTimeout(() => {
+    setLogs('');
+    try {
+      const res = await fetch('http://localhost:8000/api/autobuild', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: input }),
+      });
+      if (!res.ok) throw new Error('Build failed');
+      const data = await res.json();
+      setResult(data.message);
+      setLogs(data.logs || '');
+      showSnackbar('Autonomous build started!', 'success');
+    } catch (err) {
+      setResult('Build failed. Please try again.');
+      setLogs('');
+      showSnackbar('Autonomous build failed', 'error');
+    } finally {
       setLoading(false);
-      setResult('Your 100% free, no-subscription Pinnacle AI API/app is being generated! (Demo)');
-      showSnackbar('Autonomous build started! (Demo)', 'success');
-    }, 2000);
+    }
   };
 
   return (
@@ -292,6 +306,7 @@ function PinnacleAIAutonomousBuilder({ showSnackbar }) {
           </Button>
         </form>
         {result && <Typography sx={{ color: 'green', mt: 1 }}>{result}</Typography>}
+        {logs && <Typography sx={{ color: 'gray', mt: 1, fontSize: 13 }}>Logs: {logs}</Typography>}
       </CardContent>
     </Card>
   );
