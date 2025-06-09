@@ -253,12 +253,57 @@ function AgentPanel({ showSnackbar }) {
   );
 }
 
+function PinnacleAIAutonomousBuilder({ showSnackbar }) {
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState('');
+
+  const handleGenerate = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setResult('');
+    // Placeholder: In production, call backend endpoint like /api/autobuild
+    setTimeout(() => {
+      setLoading(false);
+      setResult('Your 100% free, no-subscription Pinnacle AI API/app is being generated! (Demo)');
+      showSnackbar('Autonomous build started! (Demo)', 'success');
+    }, 2000);
+  };
+
+  return (
+    <Card sx={{ mb: 3, background: 'rgba(230,255,230,0.95)', border: '2px solid #b0e0e6' }}>
+      <CardContent>
+        <Typography variant="h6" color="primary" sx={{ mb: 2 }}>
+          Pinnacle Autonomous AI API & App Builder (100% Free, No Subscription)
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 2 }}>
+          Instantly generate AI APIs, no-code apps, and e-commerce solutions with zero cost, no subscription, and full privacy. Powered by Pinnacle's autonomous AI builder engine.
+        </Typography>
+        <form onSubmit={handleGenerate} style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+          <TextField
+            label="Describe your app, API, or store (e.g. 'AI-powered blog API', 'No-code dropshipping store')"
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            fullWidth
+            disabled={loading}
+          />
+          <Button type="submit" variant="contained" color="success" disabled={loading || !input}>
+            {loading ? 'Generating...' : 'Generate'}
+          </Button>
+        </form>
+        {result && <Typography sx={{ color: 'green', mt: 1 }}>{result}</Typography>}
+      </CardContent>
+    </Card>
+  );
+}
+
 // --- Dashboard Layout ---
 function Dashboard({ showSnackbar }) {
   const { user } = useAuth();
   const isAdmin = user && (user.role === 'Superuser' || user.role === 'admin');
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <PinnacleAIAutonomousBuilder showSnackbar={showSnackbar} />
       <Grid container spacing={2}>
         <Grid item xs={12} md={6}>
           <RealTimePreview />
