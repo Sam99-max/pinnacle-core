@@ -255,18 +255,20 @@ function AgentPanel({ showSnackbar }) {
 
 // --- Dashboard Layout ---
 function Dashboard({ showSnackbar }) {
+  const { user } = useAuth();
+  const isAdmin = user && (user.role === 'Superuser' || user.role === 'admin');
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Grid container spacing={2}>
         <Grid item xs={12} md={6}>
           <RealTimePreview />
           <AnalyticsPanel />
-          <QuickActions onRunAll={() => showSnackbar('Run all agents (stub)', 'info')} />
+          {isAdmin && <QuickActions onRunAll={() => showSnackbar('Run all agents (stub)', 'info')} />}
         </Grid>
         <Grid item xs={12} md={6}>
           <NotificationCenter />
-          <UserManagement />
-          <SettingsPanel />
+          {isAdmin ? <UserManagement /> : <Typography sx={{ mb: 2, color: 'orange' }}>Limited access: Not an admin</Typography>}
+          {isAdmin && <SettingsPanel />}
         </Grid>
       </Grid>
       <AgentPanel showSnackbar={showSnackbar} />
