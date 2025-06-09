@@ -312,6 +312,99 @@ function PinnacleAIAutonomousBuilder({ showSnackbar }) {
   );
 }
 
+function SkillsPanel({ showSnackbar }) {
+  const [skills, setSkills] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [registerOpen, setRegisterOpen] = useState(false);
+  const [newSkill, setNewSkill] = useState({ name: '', type: '', desc: '' });
+
+  useEffect(() => {
+    setLoading(true);
+    fetch('http://localhost:8000/api/skills')
+      .then(r => r.ok ? r.json() : [])
+      .then(setSkills)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleRunDaemon = async (name) => {
+    setLoading(true);
+    try {
+      const res = await fetch('http://localhost:8000/api/daemons/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      });
+      const data = await res.json();
+      showSnackbar(data.message, data.status === 'started' ? 'success' : 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegisterSkill = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await fetch('http://localhost:8000/api/skills/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newSkill),
+      });
+      if (res.ok) {
+        showSnackbar('Skill registered!', 'success');
+        setRegisterOpen(false);
+        setNewSkill({ name: '', type: '', desc: '' });
+        // Refresh skills
+        fetch('http://localhost:8000/api/skills')
+          .then(r => r.ok ? r.json() : [])
+          .then(setSkills);
+      } else {
+        showSnackbar('Failed to register skill', 'error');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Card sx={{ mb: 3, background: 'rgba(240,250,255,0.95)', border: '2px solid #b0e0e6' }}>
+      <CardContent>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6" color="primary">Available AI/Agent/Daemon/App Skills</Typography>
+          <Button variant="outlined" size="small" onClick={() => setRegisterOpen(true)}>Register Skill</Button>
+        </Box>
+        {loading ? <Typography>Loading...</Typography> : (
+          <List>
+            {skills.map((skill, i) => (
+              <ListItem key={i} secondaryAction={
+                skill.type === 'daemon' ? (
+                  <Button size="small" variant="contained" onClick={() => handleRunDaemon(skill.name)}>Run</Button>
+                ) : null
+              }>
+                <ListItemText primary={skill.name} secondary={`${skill.type.toUpperCase()} - ${skill.desc}`} />
+              </ListItem>
+            ))}
+          </List>
+        )}
+        <Dialog open={registerOpen} onClose={() => setRegisterOpen(false)}>
+          <DialogTitle>Register New Skill/Capability</DialogTitle>
+          <form onSubmit={handleRegisterSkill}>
+            <DialogContent>
+              <TextField label="Name" fullWidth margin="dense" value={newSkill.name} onChange={e => setNewSkill(s => ({ ...s, name: e.target.value }))} />
+              <TextField label="Type (ai, agent, daemon, app)" fullWidth margin="dense" value={newSkill.type} onChange={e => setNewSkill(s => ({ ...s, type: e.target.value }))} />
+              <TextField label="Description" fullWidth margin="dense" value={newSkill.desc} onChange={e => setNewSkill(s => ({ ...s, desc: e.target.value }))} />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setRegisterOpen(false)}>Cancel</Button>
+              <Button type="submit" variant="contained">Register</Button>
+            </DialogActions>
+          </form>
+        </Dialog>
+      </CardContent>
+    </Card>
+  );
+}
+
 // --- Dashboard Layout ---
 function Dashboard({ showSnackbar }) {
   const { user } = useAuth();
@@ -319,6 +412,7 @@ function Dashboard({ showSnackbar }) {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <PinnacleAIAutonomousBuilder showSnackbar={showSnackbar} />
+      <SkillsPanel showSnackbar={showSnackbar} />
       <Grid container spacing={2}>
         <Grid item xs={12} md={6}>
           <RealTimePreview />
