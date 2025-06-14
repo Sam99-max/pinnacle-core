@@ -1,4 +1,5 @@
 {
   "typescript.locale": "en",
-  "python.analysis.displayEnglishDiagnostics": true
+  "python.analysis.displayEnglishDiagnostics": true,
+  "zencoder.enableRepoIndexing": true
 }
